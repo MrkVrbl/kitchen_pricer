@@ -1,0 +1,44 @@
+# Cenník a koeficienty podľa firmskej logiky
+
+# Výšky (v metroch)
+vyska_spodneho: 0.9
+vyska_vrchneho: 0.7
+vyska_full: 2.5
+vyska_island: 0.9
+
+# Základné ceny €/m2 alebo €/m
+cena_korpus_per_m2: 72
+ceny_dvierka:
+  laminát: 36
+  folia: 54
+  akryl: 86
+  striekane: 95
+ceny_pracovna_doska:
+  bez: 0
+  imitacia_kamena: 18
+  drevodekor: 36
+  kompakt: 108
+  umely_kamen: 270
+
+# Koeficienty a prirážky
+dph: 0.23           # 23%
+marza: 2.5      # násobiteľ na korpus aj dvierka
+marza_kovanie: 2        # násobiteľ na kovania
+
+# Extra položky - ceny bez DPH
+led_pas_per_m: 18
+suflik_price: 54
+vrchne_otvaranie_zlomove: 63
+vrchne_otvaranie_klasik: 45
+rohova_ladvina: 216
+potravinova_skrina_vysoka: 378
+potravinova_skrina_nizka: 180
+potravinove_sufle_vysoke: 450
+potravinove_sufle_nizke: 225
+sortier_price: 135
+hidden_coffee_price: 90
+
+# Logistika
+montaz_pct: 0.15        # 15% z kuchyne
+doprava_per_km: 2        # 2 €/km
+vynaska_per_floor_per_m: 5  # 5 €/poschodie/m
