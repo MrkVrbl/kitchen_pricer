@@ -103,7 +103,10 @@ with st.sidebar:
                             if data[field_name] is None and isinstance(fields_defaults[field_name], str):
                                 st.session_state[field_name] = ""
                             else:
-                                st.session_state[field_name] = data[field_name]
+                                if field_name == "discount_pct" and data[field_name] is not None:
+                                    st.session_state[field_name] = data[field_name] * 100
+                                else:
+                                    st.session_state[field_name] = data[field_name]
                     else:
                         st.session_state[field_name] = fields_defaults[field_name]
                 st.session_state["lead_id"] = selected_lead.id
@@ -128,7 +131,10 @@ with st.sidebar:
         }:
             temp_data[field_name] = val if val != "" else None
         else:
-            temp_data[field_name] = val
+            if field_name == "discount_pct":
+                temp_data[field_name] = val / 100
+            else:
+                temp_data[field_name] = val
 
     try:
         temp_lead = LeadIn(**temp_data)
@@ -388,7 +394,10 @@ with col1:
                 }:
                     lead_kwargs[field_name] = val if val != "" else None
                 else:
-                    lead_kwargs[field_name] = val
+                    if field_name == "discount_pct":
+                        lead_kwargs[field_name] = val / 100
+                    else:
+                        lead_kwargs[field_name] = val
 
             if st.session_state["lead_id"]:
                 lead_kwargs["id"] = st.session_state["lead_id"]
