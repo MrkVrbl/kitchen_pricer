@@ -1,5 +1,6 @@
 import yaml
 from pathlib import Path
+
 try:
     from pydantic_settings import BaseSettings
 except ImportError:  # Backward compatibility if pydantic<2.0
