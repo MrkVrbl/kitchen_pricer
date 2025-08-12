@@ -97,3 +97,15 @@ def test_discount_percentage_applied():
     expected_with_dph = math.ceil(expected_without_dph * (1 + PRICES["dph"]) / 20) * 20
     assert total == expected_with_dph
 
+
+def test_total_price_known_example():
+    p = LeadIn(
+        customer_name="Test",
+        address="TestCity",
+        length_spod=1.0,
+        material_dvierok="laminát",
+        material_pracovnej_dosky="bez",
+    )
+    total, _ = calculate_total(p)
+    assert total == 360
+
