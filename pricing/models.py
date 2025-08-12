@@ -57,5 +57,5 @@ class LeadIn(BaseModel):
 class Lead(SQLModel, table=True):
     __table_args__ = {"extend_existing": True}
     id: Optional[int] = Field(default=None, primary_key=True)
-    data: dict = Field(sa_column=Column(JSONType), nullable=False)
+    data: dict = Field(sa_column=Column(JSONType, nullable=False))
     quoted_price: float = Field(nullable=False)
