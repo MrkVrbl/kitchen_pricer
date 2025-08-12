@@ -18,7 +18,7 @@ def compute_areas(p: LeadIn) -> Tuple[float, float, float]:
 def calculate_korpus(p: LeadIn) -> float:
     base_price = PRICES["cena_korpus_per_m2"]
     dph_rate = PRICES["dph"]
-    marza = PRICES["marza"]
+    marza = PRICES["marza_korpus"]
     area_spod, area_spod_vrch, area_full = compute_areas(p)
     total_area = area_spod + area_spod_vrch + area_full
     unit = (base_price * (1 + dph_rate)) * marza
@@ -28,7 +28,7 @@ def calculate_korpus(p: LeadIn) -> float:
 def calculate_dvierka(p: LeadIn) -> float:
     base_price = PRICES["ceny_dvierka"][p.material_dvierok]
     dph_rate = PRICES["dph"]
-    marza = PRICES["marza"]
+    marza = PRICES["marza_dvierka"]
     area_spod, area_spod_vrch, area_full = compute_areas(p)
     door_area = area_spod + area_spod_vrch + area_full
     unit = (base_price * (1 + dph_rate)) * marza
@@ -40,7 +40,7 @@ def calculate_prac_doska(p: LeadIn) -> float:
         return 0.0
     length = p.length_spod + p.length_spod_vrch
     base_price = PRICES["ceny_pracovna_doska"][p.material_pracovnej_dosky]
-    marza = PRICES["marza"]
+    marza = PRICES["marza_pracovka"]
     dph_rate = PRICES["dph"]
     unit = (base_price * (1 + dph_rate)) * marza
     return length * unit
@@ -51,7 +51,7 @@ def calculate_zastena(p: LeadIn) -> float:
         return 0.0
     length = p.length_spod + p.length_spod_vrch
     base_price = PRICES["ceny_pracovna_doska"][p.material_pracovnej_dosky]
-    marza = PRICES["marza"]
+    marza = PRICES["marza_pracovka"]
     dph_rate = PRICES["dph"]
     unit = (base_price * (1 + dph_rate)) * marza
     return length * unit
@@ -60,16 +60,16 @@ def calculate_zastena(p: LeadIn) -> float:
 def calculate_island(p: LeadIn) -> float:
     if not p.has_island or p.length_island <= 0:
         return 0.0
-    unit_k = (PRICES["cena_korpus_per_m2"] * (1 + PRICES["dph"])) * PRICES["marza"]
+    unit_k = (PRICES["cena_korpus_per_m2"] * (1 + PRICES["dph"])) * PRICES["marza_korpus"]
     area_k = p.length_island * PRICES["vyska_island"]
     c_korpus_island = unit_k * area_k
 
     base_dv = PRICES["ceny_dvierka"][p.material_dvierok]
-    unit_dv = (base_dv * (1 + PRICES["dph"])) * PRICES["marza"]
+    unit_dv = (base_dv * (1 + PRICES["dph"])) * PRICES["marza_dvierka"]
     c_dv = unit_dv * area_k * 2  # Dve strany ostrova
 
     base_w = PRICES["ceny_pracovna_doska"][p.material_pracovnej_dosky]
-    unit_w = (base_w * (1 + PRICES["dph"])) * PRICES["marza"]
+    unit_w = (base_w * (1 + PRICES["dph"])) * PRICES["marza_pracovka"]
     c_w = p.length_island * unit_w
 
     return c_korpus_island + c_dv + c_w
