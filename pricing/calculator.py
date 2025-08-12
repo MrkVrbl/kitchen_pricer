@@ -66,7 +66,7 @@ def calculate_island(p: LeadIn) -> float:
 
     base_dv = PRICES["ceny_dvierka"][p.material_dvierok]
     unit_dv = (base_dv * (1 + PRICES["dph"])) * PRICES["marza"]
-    c_dv = unit_dv * area_k    # Dve strany ostrova
+    c_dv = unit_dv * area_k * 2  # Dve strany ostrova
 
     base_w = PRICES["ceny_pracovna_doska"][p.material_pracovnej_dosky]
     unit_w = (base_w * (1 + PRICES["dph"])) * PRICES["marza"]
