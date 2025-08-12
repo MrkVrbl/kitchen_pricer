@@ -50,3 +50,9 @@ kitchen_pricer/
     └─ test_calculator.py  # Pytest testy
 ```
 
+## Úprava marží
+
+Marže pre korpus, dvierka a pracovnú dosku sú definované v súbore `config/prices.yaml`.
+Hodnoty kľúčov `marza_korpus`, `marza_dvierka` a `marza_pracovka` môžete upraviť
+podľa potrieb vašej firmy a kalkulačka ich automaticky použije pri výpočtoch.
+
