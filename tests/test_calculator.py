@@ -19,7 +19,7 @@ def test_calculation_basic(length_spod, length_spod_vrch, length_full, shape, dr
         length_spod_vrch=length_spod_vrch,
         length_full=length_full,
         material_dvierok="laminát",
-        material_pracovnej_dosky="bez",
+        material_pracovnej_dosky="drevodekor",
         has_island=False,
         length_island=0.0,
         led_pas=False,
@@ -28,13 +28,14 @@ def test_calculation_basic(length_spod, length_spod_vrch, length_full, shape, dr
         vrchne_doors_count=0,
         rohovy_typ=False,
         potravinova_skrina_typ=None,
-        potravinove_sufle_typ=None,
         sortier=False,
         hidden_coffee=False,
         zastena=False,
         discount_pct=0.0,
         discount_abs=0.0,
+        shape=shape,
     )
+    assert isinstance(p, LeadIn)
     total, _ = calculate_total(p)
     assert total >= expected_min
 
