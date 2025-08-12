@@ -86,12 +86,12 @@ def test_discount_percentage_applied():
         sortier=False,
         hidden_coffee=False,
         zastena=False,
-        discount_pct=10.0,
+        discount_pct=0.10,
         discount_abs=0.0,
     )
     total, breakdown = calculate_total(p)
     subtotal = breakdown["subtotal"]
-    pct = p.discount_pct / 100
+    pct = p.discount_pct
     subtotal_after_discount = subtotal * (1 - pct) - p.discount_abs
     expected_without_dph = math.ceil((subtotal_after_discount + breakdown["montaz"] + breakdown["doprava"] + breakdown["vynaska"]) / 20) * 20
     expected_with_dph = math.ceil(expected_without_dph * (1 + PRICES["dph"]) / 20) * 20
