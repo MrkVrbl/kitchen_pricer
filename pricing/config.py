@@ -1,6 +1,10 @@
 import yaml
 from pathlib import Path
-from pydantic_settings import BaseSettings
+
+try:
+    from pydantic_settings import BaseSettings
+except ImportError:  # Backward compatibility if pydantic<2.0
+    from pydantic import BaseSettings
 
 class Settings(BaseSettings):
     google_api_key: str = ""

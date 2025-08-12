@@ -126,7 +126,7 @@ def calculate_extras(p: LeadIn) -> float:
 # 7) Logistika – doprava a vynáška
 def calculate_logistika(p: LeadIn) -> Tuple[float, float]:
     c_dopr = PRICES["doprava_per_km"] * p.distance_km
-    total_length = p.length_spod + p.length_spod_vrch + p.length_full
+    total_length = p.length_spod + p.length_spod_vrch + p.length_full + p.length_island
     c_vynaska = PRICES["vynaska_per_floor_per_m"] * p.floors * total_length
     return c_dopr, c_vynaska
 
