@@ -141,7 +141,8 @@ def calculate_total(p: LeadIn) -> Tuple[float, dict]:
     subtotal = c_korpus + c_dv + c_pr + c_zas + c_isl + c_ex + (p.extra_price or 0)
     c_mont = subtotal * PRICES["montaz_pct"]
     c_dopr, c_vyn = calculate_logistika(p)
-    subtotal_after_discount = subtotal * (1 - p.discount_pct) - p.discount_abs
+    pct = p.discount_pct / 100
+    subtotal_after_discount = subtotal * (1 - pct) - p.discount_abs
     total_without_dph = math.ceil((subtotal_after_discount + c_mont + c_dopr + c_vyn) / 20) * 20
     total_with_dph = math.ceil(total_without_dph * (1 + PRICES["dph"]) / 20) * 20
     breakdown = {

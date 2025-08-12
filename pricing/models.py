@@ -59,3 +59,4 @@ class Lead(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     data: dict = Field(sa_column=Column(JSONType))
     quoted_price: float = Field(nullable=False)
+    main
