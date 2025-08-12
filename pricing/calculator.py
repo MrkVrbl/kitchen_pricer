@@ -17,21 +17,19 @@ def compute_areas(p: LeadIn) -> Tuple[float, float, float]:
 # 2) Cena korpusu
 def calculate_korpus(p: LeadIn) -> float:
     base_price = PRICES["cena_korpus_per_m2"]
-    dph_rate = PRICES["dph"]
     marza = PRICES["marza"]
     area_spod, area_spod_vrch, area_full = compute_areas(p)
     total_area = area_spod + area_spod_vrch + area_full
-    unit = (base_price * (1 + dph_rate)) * marza
+    unit = base_price * marza
     return unit * total_area
 
 # 3) Cena dvierok
 def calculate_dvierka(p: LeadIn) -> float:
     base_price = PRICES["ceny_dvierka"][p.material_dvierok]
-    dph_rate = PRICES["dph"]
     marza = PRICES["marza"]
     area_spod, area_spod_vrch, area_full = compute_areas(p)
     door_area = area_spod + area_spod_vrch + area_full
-    unit = (base_price * (1 + dph_rate)) * marza
+    unit = base_price * marza
     return unit * door_area
 
 # 4) Cena pracovnej dosky
@@ -41,8 +39,7 @@ def calculate_prac_doska(p: LeadIn) -> float:
     length = p.length_spod + p.length_spod_vrch
     base_price = PRICES["ceny_pracovna_doska"][p.material_pracovnej_dosky]
     marza = PRICES["marza"]
-    dph_rate = PRICES["dph"]
-    unit = (base_price * (1 + dph_rate)) * marza
+    unit = base_price * marza
     return length * unit
 
 # 4b) Cena zásteny
@@ -52,24 +49,23 @@ def calculate_zastena(p: LeadIn) -> float:
     length = p.length_spod + p.length_spod_vrch
     base_price = PRICES["ceny_pracovna_doska"][p.material_pracovnej_dosky]
     marza = PRICES["marza"]
-    dph_rate = PRICES["dph"]
-    unit = (base_price * (1 + dph_rate)) * marza
+    unit = base_price * marza
     return length * unit
 
 # 5) Cena ostrovček
 def calculate_island(p: LeadIn) -> float:
     if not p.has_island or p.length_island <= 0:
         return 0.0
-    unit_k = (PRICES["cena_korpus_per_m2"] * (1 + PRICES["dph"])) * PRICES["marza"]
+    unit_k = PRICES["cena_korpus_per_m2"] * PRICES["marza"]
     area_k = p.length_island * PRICES["vyska_island"]
     c_korpus_island = unit_k * area_k
 
     base_dv = PRICES["ceny_dvierka"][p.material_dvierok]
-    unit_dv = (base_dv * (1 + PRICES["dph"])) * PRICES["marza"]
+    unit_dv = base_dv * PRICES["marza"]
     c_dv = unit_dv * area_k * 2  # Dve strany ostrova
 
     base_w = PRICES["ceny_pracovna_doska"][p.material_pracovnej_dosky]
-    unit_w = (base_w * (1 + PRICES["dph"])) * PRICES["marza"]
+    unit_w = base_w * PRICES["marza"]
     c_w = p.length_island * unit_w
 
     return c_korpus_island + c_dv + c_w
@@ -77,25 +73,24 @@ def calculate_island(p: LeadIn) -> float:
 # 6) Extra položky
 def calculate_extras(p: LeadIn) -> float:
     total = 0.0
-    dph_rate = PRICES["dph"]
     marza_kovanie = PRICES["marza_kovanie"]
     # LED pás
     if p.led_pas:
         length = p.length_spod_vrch
-        unit_led = (PRICES["led_pas_per_m"] * (1 + dph_rate)) * marza_kovanie
+        unit_led = PRICES["led_pas_per_m"] * marza_kovanie
         total += unit_led * length
     # Šuflíky
     if p.drawer_count > 0:
-        unit_dr = (PRICES["suflik_price"] * (1 + dph_rate)) * marza_kovanie
+        unit_dr = PRICES["suflik_price"] * marza_kovanie
         total += unit_dr * p.drawer_count
     # Vrchné otváranie
     if p.vrchne_doors_count > 0 and p.vrchne_otvaranie_typ:
         key = f"vrchne_otvaranie_{p.vrchne_otvaranie_typ}"
-        unit_v = (PRICES[key] * (1 + dph_rate)) * marza_kovanie
+        unit_v = PRICES[key] * marza_kovanie
         total += unit_v * p.vrchne_doors_count
     # Rohový mechanizmus
     if p.rohovy_typ:
-        unit_r = (PRICES["rohova_ladvina"] * (1 + dph_rate)) * marza_kovanie
+        unit_r = PRICES["rohova_ladvina"] * marza_kovanie
         total += unit_r
     # Potravinová skrina
     if p.potravinova_skrina_typ:
@@ -103,23 +98,23 @@ def calculate_extras(p: LeadIn) -> float:
             key = "potravinova_skrina_vysoka"
         else:
             key = "potravinova_skrina_nizka"
-        unit_pantry = (PRICES[key] * (1 + dph_rate)) * marza_kovanie
+        unit_pantry = PRICES[key] * marza_kovanie
         total += unit_pantry
-    # Potravinová skrina
+    # Potravinové šufle
     if p.potravinove_sufle_typ:
         if p.potravinove_sufle_typ.startswith("vysoke"):
             key = "potravinove_sufle_vysoke"
         else:
             key = "potravinove_sufle_nizke"
-        unit_pantry = (PRICES[key] * (1 + dph_rate)) * marza_kovanie
+        unit_pantry = PRICES[key] * marza_kovanie
         total += unit_pantry
     # Sortier
     if p.sortier:
-        unit_s = (PRICES["sortier_price"] * (1 + dph_rate)) * marza_kovanie
+        unit_s = PRICES["sortier_price"] * marza_kovanie
         total += unit_s
     # Skrytý kávovar
     if p.hidden_coffee:
-        unit_c = (PRICES["hidden_coffee_price"] * (1 + dph_rate)) * marza_kovanie
+        unit_c = PRICES["hidden_coffee_price"] * marza_kovanie
         total += unit_c
     return total
 
