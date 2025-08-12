@@ -34,11 +34,24 @@ def calculate_dvierka(p: LeadIn) -> float:
     unit = (base_price * (1 + dph_rate)) * marza
     return unit * door_area
 
-# 4) Cena pracovnej dosky + backsplash
-def calculate_prac_doska_zastena(p: LeadIn) -> float:
+# 4) Cena pracovnej dosky
+def calculate_prac_doska(p: LeadIn) -> float:
+    if not p.material_pracovnej_dosky or p.material_pracovnej_dosky == "bez":
+        return 0.0
     length = p.length_spod + p.length_spod_vrch
     base_price = PRICES["ceny_pracovna_doska"][p.material_pracovnej_dosky]
-    marza= PRICES["marza"]
+    marza = PRICES["marza"]
+    dph_rate = PRICES["dph"]
+    unit = (base_price * (1 + dph_rate)) * marza
+    return length * unit
+
+# 4b) Cena zásteny
+def calculate_zastena(p: LeadIn) -> float:
+    if not p.material_pracovnej_dosky or p.material_pracovnej_dosky == "bez":
+        return 0.0
+    length = p.length_spod + p.length_spod_vrch
+    base_price = PRICES["ceny_pracovna_doska"][p.material_pracovnej_dosky]
+    marza = PRICES["marza"]
     dph_rate = PRICES["dph"]
     unit = (base_price * (1 + dph_rate)) * marza
     return length * unit
@@ -121,11 +134,11 @@ def calculate_logistika(p: LeadIn) -> Tuple[float, float]:
 def calculate_total(p: LeadIn) -> Tuple[float, dict]:
     c_korpus = calculate_korpus(p)
     c_dv = calculate_dvierka(p)
-    c_pr = calculate_prac_doska_zastena(p)
-    c_zas = calculate_prac_doska_zastena(p) if p.zastena else 0.0
+    c_pr = calculate_prac_doska(p)
+    c_zas = calculate_zastena(p) if p.zastena else 0.0
     c_isl = calculate_island(p)
     c_ex = calculate_extras(p)
-    subtotal = c_korpus + c_dv + c_pr + c_isl + c_ex + (p.extra_price or 0)
+    subtotal = c_korpus + c_dv + c_pr + c_zas + c_isl + c_ex + (p.extra_price or 0)
     c_mont = subtotal * PRICES["montaz_pct"]
     c_dopr, c_vyn = calculate_logistika(p)
     pct = p.discount_pct / 100
