@@ -222,8 +222,11 @@ uploaded_files = st.file_uploader(
 )
 
 # Build list of attachments (saved + newly uploaded)
-attachments = []
-if st.session_state["attachments"] and st.session_state.get("lead_id") is not None:
+# Start from cached attachments to keep uploads across reruns
+attachments = st.session_state.get("_attachments_cache", []).copy()
+
+# If editing an existing lead and cache is empty, load files from disk
+if not attachments and st.session_state["attachments"] and st.session_state.get("lead_id") is not None:
     base_path = Path("attachments") / str(st.session_state["lead_id"])
     for fname in st.session_state["attachments"]:
         file_path = base_path / fname
@@ -238,9 +241,11 @@ if st.session_state["attachments"] and st.session_state.get("lead_id") is not No
                 ftype = "application/octet-stream"
             attachments.append({"name": fname, "data": data, "type": ftype})
 
+# Add newly uploaded files to cache
 for uf in uploaded_files or []:
     attachments.append({"name": uf.name, "data": uf.getvalue(), "type": uf.type or ""})
 
+# Persist the updated list
 st.session_state["_attachments_cache"] = attachments
 
 if attachments:
@@ -252,12 +257,9 @@ if attachments:
                 st.image(file["data"], caption=file["name"], width=300)
                 st.button("Zobraziť", key=f"show_{idx}", on_click=open_preview, args=(idx,))
             elif file["type"] == "application/pdf":
-                b64 = base64.b64encode(file["data"]).decode()
-                st.components.v1.html(
-                    f"<iframe src='data:application/pdf;base64,{b64}' width='300' height='300'></iframe>",
-                    height=310,
+                st.download_button(
+                    f"📄 {file['name']}", file["data"], file_name=file["name"], key=f"download_{idx}"
                 )
-                st.caption(file["name"])
                 st.button("Zobraziť", key=f"show_{idx}", on_click=open_preview, args=(idx,))
             else:
                 st.download_button(
@@ -274,9 +276,12 @@ if st.session_state.get("preview_open") and files:
         st.image(current["data"], use_container_width=True)
     elif current["type"] == "application/pdf":
         b64 = base64.b64encode(current["data"]).decode()
-        st.components.v1.html(
-            f"<iframe src='data:application/pdf;base64,{b64}' width='100%' height='800'></iframe>",
-            height=810,
+        st.markdown(
+            f"<a href='data:application/pdf;base64,{b64}' target='_blank'>Otvoriť PDF v novom okne</a>",
+            unsafe_allow_html=True,
+        )
+        st.download_button(
+            "Stiahnuť PDF", current["data"], file_name=current["name"], key="download_current_pdf"
         )
     nav_prev, nav_close, nav_next = st.columns(3)
     with nav_prev:
