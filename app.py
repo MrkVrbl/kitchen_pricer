@@ -91,7 +91,10 @@ def navigate_preview(step: int) -> None:
 
 # --- SIDEBAR UI ---
 with st.sidebar:
-    st.image("logo.png", use_container_width=True)
+    # `use_container_width` is not available in the deployed Streamlit version.
+    # Using `use_column_width` ensures the logo scales with the sidebar width
+    # across Streamlit versions.
+    st.image("logo.png", use_column_width=True)
     st.write("---")
 
     # Button: open blank wizard for a new lead
