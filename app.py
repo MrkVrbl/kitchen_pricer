@@ -243,7 +243,13 @@ if not attachments and st.session_state["attachments"] and st.session_state.get(
 
 # Add newly uploaded files to cache
 for uf in uploaded_files or []:
-    attachments.append({"name": uf.name, "data": uf.getvalue(), "type": uf.type or ""})
+    file_data = uf.getvalue()
+    # Avoid duplicating files already in the cache when Streamlit reruns
+    if not any(
+        file["name"] == uf.name and file["data"] == file_data
+        for file in attachments
+    ):
+        attachments.append({"name": uf.name, "data": file_data, "type": uf.type or ""})
 
 # Persist the updated list
 st.session_state["_attachments_cache"] = attachments
