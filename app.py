@@ -1,5 +1,6 @@
 import streamlit as st
 from datetime import date
+from pathlib import Path
 from pricing.models import LeadIn
 from pricing.calculator import calculate_total
 from pricing.db import save_lead, get_all_leads, delete_lead
@@ -39,6 +40,7 @@ fields_defaults = {
     "extra_price": 0.0,
     # New field: date when kitchen should be ready
     "realization_date": date.today(),
+    "attachments": [],
 }
 
 for key, default in fields_defaults.items():
@@ -119,7 +121,7 @@ with st.sidebar:
     # Calculate price based on current session_state
     temp_data = {}
     for field_name, default in fields_defaults.items():
-        if field_name == "realization_date":
+        if field_name in {"realization_date", "attachments"}:
             continue  # Not part of LeadIn
         val = st.session_state[field_name]
         if field_name in {
@@ -187,6 +189,16 @@ st.session_state["distance_km"] = st.number_input(
     value=st.session_state["distance_km"],
     key="distance_km_input",
 )
+
+# Attachments section
+uploaded_files = st.file_uploader(
+    "Prílohy (obrázky, PDF)",
+    accept_multiple_files=True,
+)
+if st.session_state["attachments"]:
+    st.write("Uložené súbory:")
+    for fname in st.session_state["attachments"]:
+        st.write(f"- {fname}")
 
 st.markdown("---")
 
@@ -388,7 +400,7 @@ with col1:
             # Build dict for LeadIn (exclude realization_date)
             lead_kwargs = {}
             for field_name, default in fields_defaults.items():
-                if field_name == "realization_date":
+                if field_name in {"realization_date", "attachments"}:
                     continue
                 val = st.session_state[field_name]
                 if field_name in {
@@ -404,6 +416,9 @@ with col1:
                         lead_kwargs[field_name] = val / 100
                     else:
                         lead_kwargs[field_name] = val
+
+            new_files = [f.name for f in uploaded_files] if uploaded_files else []
+            lead_kwargs["attachments"] = st.session_state["attachments"] + new_files
 
             if st.session_state["lead_id"]:
                 lead_kwargs["id"] = st.session_state["lead_id"]
@@ -423,6 +438,15 @@ with col1:
                     return self.__dict__
 
             saved_id = save_lead(LeadObj(lead_data))
+
+            if uploaded_files:
+                dest = Path("attachments") / str(saved_id)
+                dest.mkdir(parents=True, exist_ok=True)
+                for f in uploaded_files:
+                    with open(dest / f.name, "wb") as out:
+                        out.write(f.getbuffer())
+                st.session_state["attachments"].extend(new_files)
+
             st.success(f"Lead uložený s ID {saved_id}")
 
             st.session_state["lead_id"] = saved_id
