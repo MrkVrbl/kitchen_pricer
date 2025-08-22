@@ -104,6 +104,8 @@ with st.sidebar:
         st.session_state["lead_id"] = None
         st.session_state["new_lead"] = True
         st.session_state["reset_lead_select"] = True
+        # Clear cached attachments so files from other leads do not appear
+        st.session_state["_attachments_cache"] = []
         st.rerun()
 
     st.write("---")
@@ -130,17 +132,26 @@ with st.sidebar:
                             # Convert ISO string back to date
                             st.session_state[field_name] = date.fromisoformat(data[field_name])
                         else:
-                            if data[field_name] is None and isinstance(fields_defaults[field_name], str):
+                            if data[field_name] is None and isinstance(
+                                fields_defaults[field_name], str
+                            ):
                                 st.session_state[field_name] = ""
                             else:
-                                if field_name == "discount_pct" and data[field_name] is not None:
-                                    st.session_state[field_name] = data[field_name] * 100
+                                if (
+                                    field_name == "discount_pct"
+                                    and data[field_name] is not None
+                                ):
+                                    st.session_state[field_name] = (
+                                        data[field_name] * 100
+                                    )
                                 else:
                                     st.session_state[field_name] = data[field_name]
                     else:
                         st.session_state[field_name] = fields_defaults[field_name]
                 st.session_state["lead_id"] = selected_lead.id
                 st.session_state["new_lead"] = False
+                # Clear cached attachments so only this lead's files load
+                st.session_state["_attachments_cache"] = []
                 st.rerun()
     else:
         st.info("Žiadne leady zatiaľ nie sú uložené.")
