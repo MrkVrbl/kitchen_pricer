@@ -407,11 +407,17 @@ st.markdown("---")
 
 # 5. Zľavy
 st.markdown("### 💰 Zľavy")
+# Oprav hodnotu pred widgetom
+if st.session_state["discount_pct"] > 100.0:
+    st.session_state["discount_pct"] = 100.0
+if st.session_state["discount_pct"] < 0.0:
+    st.session_state["discount_pct"] = 0.0
+
 st.session_state["discount_pct"] = st.number_input(
     "Zľava (%)",
     min_value=0.0,
     max_value=100.0,
-    step=0.5,
+    step=1.0,
     value=st.session_state["discount_pct"],
     key="discount_pct_input",
 )
