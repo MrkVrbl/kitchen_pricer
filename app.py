@@ -227,7 +227,7 @@ if st.session_state["attachments"] or uploaded_files:
             st.image(uf, caption=uf.name)
         else:
             st.download_button(
-                f"📄 {uf.name}", uf.getbuffer(), file_name=uf.name, key=f"download_new_{uf.name}"
+              f"📄 {uf.name}", uf.getvalue(), file_name=uf.name, key=f"download_new_{uf.name}"
             )
 
 st.markdown("---")
