@@ -46,7 +46,10 @@ fields_defaults = {
 
 for key, default in fields_defaults.items():
     if key not in st.session_state:
-        st.session_state[key] = default
+        if isinstance(default, (list, dict)):
+            st.session_state[key] = default.copy()
+        else:
+            st.session_state[key] = default
 
 if "lead_id" not in st.session_state:
     st.session_state["lead_id"] = None
@@ -100,10 +103,15 @@ with st.sidebar:
     # Button: open blank wizard for a new lead
     if st.button("➕ Nový lead"):
         for key, default in fields_defaults.items():
-            st.session_state[key] = default
+            if isinstance(default, (list, dict)):
+                st.session_state[key] = default.copy()
+            else:
+                st.session_state[key] = default
         st.session_state["lead_id"] = None
         st.session_state["new_lead"] = True
         st.session_state["reset_lead_select"] = True
+        # Clear cached attachments so files from other leads do not appear
+        st.session_state["_attachments_cache"] = []
         st.rerun()
 
     st.write("---")
@@ -130,17 +138,34 @@ with st.sidebar:
                             # Convert ISO string back to date
                             st.session_state[field_name] = date.fromisoformat(data[field_name])
                         else:
-                            if data[field_name] is None and isinstance(fields_defaults[field_name], str):
+                            if data[field_name] is None and isinstance(
+                                fields_defaults[field_name], str
+                            ):
                                 st.session_state[field_name] = ""
                             else:
-                                if field_name == "discount_pct" and data[field_name] is not None:
-                                    st.session_state[field_name] = data[field_name] * 100
+                                if (
+                                    field_name == "discount_pct"
+                                    and data[field_name] is not None
+                                ):
+                                    st.session_state[field_name] = (
+                                        data[field_name] * 100
+                                    )
                                 else:
-                                    st.session_state[field_name] = data[field_name]
+                                    value = data[field_name]
+                                    if isinstance(value, (list, dict)):
+                                        st.session_state[field_name] = value.copy()
+                                    else:
+                                        st.session_state[field_name] = value
                     else:
-                        st.session_state[field_name] = fields_defaults[field_name]
+                        default = fields_defaults[field_name]
+                        if isinstance(default, (list, dict)):
+                            st.session_state[field_name] = default.copy()
+                        else:
+                            st.session_state[field_name] = default
                 st.session_state["lead_id"] = selected_lead.id
                 st.session_state["new_lead"] = False
+                # Clear cached attachments so only this lead's files load
+                st.session_state["_attachments_cache"] = []
                 st.rerun()
     else:
         st.info("Žiadne leady zatiaľ nie sú uložené.")
@@ -560,7 +585,10 @@ with col2:
             delete_lead(st.session_state["lead_id"])
             st.success("Lead bol vymazaný.")
             for key, default in fields_defaults.items():
-                st.session_state[key] = default
+                if isinstance(default, (list, dict)):
+                    st.session_state[key] = default.copy()
+                else:
+                    st.session_state[key] = default
             st.session_state["lead_id"] = None
             st.session_state["new_lead"] = True
             st.session_state["reset_lead_select"] = True
