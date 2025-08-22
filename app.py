@@ -1,6 +1,7 @@
 import streamlit as st
 from datetime import date
 from pathlib import Path
+from PIL import UnidentifiedImageError
 from pricing.models import LeadIn
 from pricing.calculator import calculate_total
 from pricing.db import save_lead, get_all_leads, delete_lead
@@ -206,6 +207,7 @@ if st.session_state["attachments"] or uploaded_files:
         for fname in st.session_state["attachments"]:
             file_path = base_path / fname
             if file_path.exists():
+                data = file_path.read_bytes()
                 if file_path.suffix.lower() in {
                     ".png",
                     ".jpg",
@@ -214,20 +216,30 @@ if st.session_state["attachments"] or uploaded_files:
                     ".bmp",
                     ".webp",
                 }:
-                    st.image(file_path.read_bytes(), caption=fname)
-                else:
-                    with open(file_path, "rb") as f:
+                    try:
+                        st.image(data, caption=fname)
+                    except UnidentifiedImageError:
                         st.download_button(
-                            f"📄 {fname}", f.read(), file_name=fname, key=f"download_saved_{fname}"
+                            f"📄 {fname}", data, file_name=fname, key=f"download_saved_{fname}"
                         )
+                else:
+                    st.download_button(
+                        f"📄 {fname}", data, file_name=fname, key=f"download_saved_{fname}"
+                    )
 
     # Show newly uploaded files immediately
     for uf in uploaded_files or []:
-        if uf.type.startswith("image/"):
-            st.image(uf, caption=uf.name)
+        data = uf.getvalue()
+        if uf.type and uf.type.startswith("image/"):
+            try:
+                st.image(data, caption=uf.name)
+            except UnidentifiedImageError:
+                st.download_button(
+                    f"📄 {uf.name}", data, file_name=uf.name, key=f"download_new_{uf.name}"
+                )
         else:
             st.download_button(
-              f"📄 {uf.name}", uf.getvalue(), file_name=uf.name, key=f"download_new_{uf.name}"
+                f"📄 {uf.name}", data, file_name=uf.name, key=f"download_new_{uf.name}"
             )
 
 st.markdown("---")
