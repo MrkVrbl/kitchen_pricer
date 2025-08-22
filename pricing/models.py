@@ -1,7 +1,7 @@
 from typing import Optional, List, Literal
 from sqlmodel import SQLModel, Field, Column
 from sqlalchemy import JSON as JSONType
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, validator, Field as PydField
 
 # ------------------------------------------
 # Pydantic model pre vstup z UI
@@ -39,6 +39,7 @@ class LeadIn(BaseModel):
     discount_abs: float = 0.0
     extra_desc: str = ""
     extra_price: float = 0.0
+    attachments: List[str] = PydField(default_factory=list)
 
     @validator("length_spod", "length_spod_vrch", "length_full", "length_island", allow_reuse=True)
     def lengths_positive(cls, v):
