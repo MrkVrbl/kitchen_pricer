@@ -22,9 +22,9 @@ ceny_pracovna_doska:
 
 # Koeficienty a prirážky
 dph: 0.23           # 23%
-marza_korpus: 2.5      # násobiteľ na korpus
-marza_dvierka: 2.7      # násobiteľ na dvierka
-marza_pracovka: 2.3      # násobiteľ na pracovnú dosku
+marza_korpus: 2.7      # násobiteľ na korpus
+marza_dvierka: 2.5      # násobiteľ na dvierka
+marza_pracovka: 2      # násobiteľ na pracovnú dosku
 marza_kovanie: 2        # násobiteľ na kovania
 
 # Extra položky - ceny bez DPH
