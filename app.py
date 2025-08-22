@@ -1,7 +1,7 @@
 import streamlit as st
 from datetime import date
 from pathlib import Path
-from PIL import UnidentifiedImageError
+import base64
 from pricing.models import LeadIn
 from pricing.calculator import calculate_total
 from pricing.db import save_lead, get_all_leads, delete_lead
@@ -60,10 +60,34 @@ if "lead_select" not in st.session_state:
 if "reset_lead_select" not in st.session_state:
     st.session_state["reset_lead_select"] = False
 
+if "preview_open" not in st.session_state:
+    st.session_state["preview_open"] = False
+if "preview_index" not in st.session_state:
+    st.session_state["preview_index"] = 0
+if "_attachments_cache" not in st.session_state:
+    st.session_state["_attachments_cache"] = []
+
 # If flagged to reset, clear lead_select before the selectbox is rendered
 if st.session_state["reset_lead_select"]:
     st.session_state["lead_select"] = ""
     st.session_state["reset_lead_select"] = False
+
+
+def open_preview(idx: int) -> None:
+    st.session_state["preview_index"] = idx
+    st.session_state["preview_open"] = True
+
+
+def close_preview() -> None:
+    st.session_state["preview_open"] = False
+
+
+def navigate_preview(step: int) -> None:
+    files = st.session_state.get("_attachments_cache", [])
+    if files:
+        st.session_state["preview_index"] = (
+            st.session_state["preview_index"] + step
+        ) % len(files)
 
 # --- SIDEBAR UI ---
 with st.sidebar:
@@ -197,50 +221,70 @@ uploaded_files = st.file_uploader(
     accept_multiple_files=True,
 )
 
-# Display previously saved attachments and newly uploaded files
-if st.session_state["attachments"] or uploaded_files:
+# Build list of attachments (saved + newly uploaded)
+attachments = []
+if st.session_state["attachments"] and st.session_state.get("lead_id") is not None:
+    base_path = Path("attachments") / str(st.session_state["lead_id"])
+    for fname in st.session_state["attachments"]:
+        file_path = base_path / fname
+        if file_path.exists():
+            data = file_path.read_bytes()
+            ext = file_path.suffix.lower()
+            if ext in {".png", ".jpg", ".jpeg", ".gif", ".bmp", ".webp"}:
+                ftype = "image/" + ext.lstrip(".")
+            elif ext == ".pdf":
+                ftype = "application/pdf"
+            else:
+                ftype = "application/octet-stream"
+            attachments.append({"name": fname, "data": data, "type": ftype})
+
+for uf in uploaded_files or []:
+    attachments.append({"name": uf.name, "data": uf.getvalue(), "type": uf.type or ""})
+
+st.session_state["_attachments_cache"] = attachments
+
+if attachments:
     st.write("Uložené súbory:")
-
-    # Show files already saved for this lead
-    if st.session_state["attachments"] and st.session_state.get("lead_id") is not None:
-        base_path = Path("attachments") / str(st.session_state["lead_id"])
-        for fname in st.session_state["attachments"]:
-            file_path = base_path / fname
-            if file_path.exists():
-                data = file_path.read_bytes()
-                if file_path.suffix.lower() in {
-                    ".png",
-                    ".jpg",
-                    ".jpeg",
-                    ".gif",
-                    ".bmp",
-                    ".webp",
-                }:
-                    try:
-                        st.image(data, caption=fname)
-                    except UnidentifiedImageError:
-                        st.download_button(
-                            f"📄 {fname}", data, file_name=fname, key=f"download_saved_{fname}"
-                        )
-                else:
-                    st.download_button(
-                        f"📄 {fname}", data, file_name=fname, key=f"download_saved_{fname}"
-                    )
-
-    # Show newly uploaded files immediately
-    for uf in uploaded_files or []:
-        data = uf.getvalue()
-        if uf.type and uf.type.startswith("image/"):
-            try:
-                st.image(data, caption=uf.name)
-            except UnidentifiedImageError:
-                st.download_button(
-                    f"📄 {uf.name}", data, file_name=uf.name, key=f"download_new_{uf.name}"
+    cols = st.columns(3)
+    for idx, file in enumerate(attachments):
+        with cols[idx % 3]:
+            if file["type"].startswith("image/"):
+                st.image(file["data"], caption=file["name"], width=300)
+                st.button("Zobraziť", key=f"show_{idx}", on_click=open_preview, args=(idx,))
+            elif file["type"] == "application/pdf":
+                b64 = base64.b64encode(file["data"]).decode()
+                st.components.v1.html(
+                    f"<iframe src='data:application/pdf;base64,{b64}' width='300' height='300'></iframe>",
+                    height=310,
                 )
-        else:
-            st.download_button(
-                f"📄 {uf.name}", data, file_name=uf.name, key=f"download_new_{uf.name}"
-            )
+                st.caption(file["name"])
+                st.button("Zobraziť", key=f"show_{idx}", on_click=open_preview, args=(idx,))
+            else:
+                st.download_button(
+                    f"📄 {file['name']}", file["data"], file_name=file["name"], key=f"download_{idx}"
+                )
+
+# Preview modal
+files = st.session_state.get("_attachments_cache", [])
+if st.session_state.get("preview_open") and files:
+    current = files[st.session_state["preview_index"]]
+    st.write("---")
+    st.write(f"### {current['name']}")
+    if current["type"].startswith("image/"):
+        st.image(current["data"], use_container_width=True)
+    elif current["type"] == "application/pdf":
+        b64 = base64.b64encode(current["data"]).decode()
+        st.components.v1.html(
+            f"<iframe src='data:application/pdf;base64,{b64}' width='100%' height='800'></iframe>",
+            height=810,
+        )
+    nav_prev, nav_close, nav_next = st.columns(3)
+    with nav_prev:
+        st.button("⬅️ Predchádzajúci", key="prev_attach", on_click=navigate_preview, args=(-1,))
+    with nav_close:
+        st.button("Zavrieť", key="close_attach", on_click=close_preview)
+    with nav_next:
+        st.button("➡️ Ďalší", key="next_attach", on_click=navigate_preview, args=(1,))
 
 st.markdown("---")
 
