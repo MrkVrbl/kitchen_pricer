@@ -1,6 +1,7 @@
 import streamlit as st
 from datetime import date
 from pathlib import Path
+from PIL import UnidentifiedImageError
 from pricing.models import LeadIn
 from pricing.calculator import calculate_total
 from pricing.db import save_lead, get_all_leads, delete_lead
@@ -195,10 +196,51 @@ uploaded_files = st.file_uploader(
     "Prílohy (obrázky, PDF)",
     accept_multiple_files=True,
 )
-if st.session_state["attachments"]:
+
+# Display previously saved attachments and newly uploaded files
+if st.session_state["attachments"] or uploaded_files:
     st.write("Uložené súbory:")
-    for fname in st.session_state["attachments"]:
-        st.write(f"- {fname}")
+
+    # Show files already saved for this lead
+    if st.session_state["attachments"] and st.session_state.get("lead_id") is not None:
+        base_path = Path("attachments") / str(st.session_state["lead_id"])
+        for fname in st.session_state["attachments"]:
+            file_path = base_path / fname
+            if file_path.exists():
+                data = file_path.read_bytes()
+                if file_path.suffix.lower() in {
+                    ".png",
+                    ".jpg",
+                    ".jpeg",
+                    ".gif",
+                    ".bmp",
+                    ".webp",
+                }:
+                    try:
+                        st.image(data, caption=fname)
+                    except UnidentifiedImageError:
+                        st.download_button(
+                            f"📄 {fname}", data, file_name=fname, key=f"download_saved_{fname}"
+                        )
+                else:
+                    st.download_button(
+                        f"📄 {fname}", data, file_name=fname, key=f"download_saved_{fname}"
+                    )
+
+    # Show newly uploaded files immediately
+    for uf in uploaded_files or []:
+        data = uf.getvalue()
+        if uf.type and uf.type.startswith("image/"):
+            try:
+                st.image(data, caption=uf.name)
+            except UnidentifiedImageError:
+                st.download_button(
+                    f"📄 {uf.name}", data, file_name=uf.name, key=f"download_new_{uf.name}"
+                )
+        else:
+            st.download_button(
+                f"📄 {uf.name}", data, file_name=uf.name, key=f"download_new_{uf.name}"
+            )
 
 st.markdown("---")
 
