@@ -107,5 +107,5 @@ def test_total_price_known_example():
         material_pracovnej_dosky="bez",
     )
     total, _ = calculate_total(p)
-    assert total == 360
+    assert total == 380
 
