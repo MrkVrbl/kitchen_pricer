@@ -195,10 +195,40 @@ uploaded_files = st.file_uploader(
     "Prílohy (obrázky, PDF)",
     accept_multiple_files=True,
 )
-if st.session_state["attachments"]:
+
+# Display previously saved attachments and newly uploaded files
+if st.session_state["attachments"] or uploaded_files:
     st.write("Uložené súbory:")
-    for fname in st.session_state["attachments"]:
-        st.write(f"- {fname}")
+
+    # Show files already saved for this lead
+    if st.session_state["attachments"] and st.session_state.get("lead_id") is not None:
+        base_path = Path("attachments") / str(st.session_state["lead_id"])
+        for fname in st.session_state["attachments"]:
+            file_path = base_path / fname
+            if file_path.exists():
+                if file_path.suffix.lower() in {
+                    ".png",
+                    ".jpg",
+                    ".jpeg",
+                    ".gif",
+                    ".bmp",
+                    ".webp",
+                }:
+                    st.image(file_path.read_bytes(), caption=fname)
+                else:
+                    with open(file_path, "rb") as f:
+                        st.download_button(
+                            f"📄 {fname}", f.read(), file_name=fname, key=f"download_saved_{fname}"
+                        )
+
+    # Show newly uploaded files immediately
+    for uf in uploaded_files or []:
+        if uf.type.startswith("image/"):
+            st.image(uf, caption=uf.name)
+        else:
+            st.download_button(
+                f"📄 {uf.name}", uf.getvalue(), file_name=uf.name, key=f"download_new_{uf.name}"
+            )
 
 st.markdown("---")
 
