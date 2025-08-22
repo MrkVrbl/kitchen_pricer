@@ -46,7 +46,10 @@ fields_defaults = {
 
 for key, default in fields_defaults.items():
     if key not in st.session_state:
-        st.session_state[key] = default
+        if isinstance(default, (list, dict)):
+            st.session_state[key] = default.copy()
+        else:
+            st.session_state[key] = default
 
 if "lead_id" not in st.session_state:
     st.session_state["lead_id"] = None
@@ -100,7 +103,10 @@ with st.sidebar:
     # Button: open blank wizard for a new lead
     if st.button("➕ Nový lead"):
         for key, default in fields_defaults.items():
-            st.session_state[key] = default
+            if isinstance(default, (list, dict)):
+                st.session_state[key] = default.copy()
+            else:
+                st.session_state[key] = default
         st.session_state["lead_id"] = None
         st.session_state["new_lead"] = True
         st.session_state["reset_lead_select"] = True
@@ -145,9 +151,17 @@ with st.sidebar:
                                         data[field_name] * 100
                                     )
                                 else:
-                                    st.session_state[field_name] = data[field_name]
+                                    value = data[field_name]
+                                    if isinstance(value, (list, dict)):
+                                        st.session_state[field_name] = value.copy()
+                                    else:
+                                        st.session_state[field_name] = value
                     else:
-                        st.session_state[field_name] = fields_defaults[field_name]
+                        default = fields_defaults[field_name]
+                        if isinstance(default, (list, dict)):
+                            st.session_state[field_name] = default.copy()
+                        else:
+                            st.session_state[field_name] = default
                 st.session_state["lead_id"] = selected_lead.id
                 st.session_state["new_lead"] = False
                 # Clear cached attachments so only this lead's files load
@@ -571,7 +585,10 @@ with col2:
             delete_lead(st.session_state["lead_id"])
             st.success("Lead bol vymazaný.")
             for key, default in fields_defaults.items():
-                st.session_state[key] = default
+                if isinstance(default, (list, dict)):
+                    st.session_state[key] = default.copy()
+                else:
+                    st.session_state[key] = default
             st.session_state["lead_id"] = None
             st.session_state["new_lead"] = True
             st.session_state["reset_lead_select"] = True
