@@ -7,7 +7,7 @@ vyska_full: 2.5
 vyska_island: 0.9
 
 # Základné ceny €/m2 alebo €/m
-cena_korpus_per_m2: 72
+cena_korpus_per_m2: 60
 ceny_dvierka:
   laminát: 36
   folia: 54
