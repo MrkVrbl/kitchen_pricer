@@ -4,16 +4,20 @@ from pricing.models import Lead
 DATABASE_URL = "sqlite:///kitchen_pricer.db"
 engine = create_engine(DATABASE_URL, echo=False)
 
+
 def get_session():
     return Session(engine)
 
-def init_db():
-    from pricing.models import Lead  # importuj všetky modely
-    with get_session() as session:
-        SQLModel.metadata.create_all(session.get_bind())
+
+def init_db() -> None:
+    """Create all tables if they don't exist."""
+    SQLModel.metadata.create_all(engine)
+
+
+# Ensure tables exist on import to avoid runtime OperationalError
+init_db()
 
 def save_lead(lead_in):
-    from pricing.models import Lead
     with Session(engine) as session:
         if getattr(lead_in, "id", None):  # UPDATE
             db_record = session.get(Lead, lead_in.id)
@@ -35,13 +39,13 @@ def get_all_leads():
         return results
 
 def delete_lead(lead_id: int):
-    from pricing.models import Lead
     from pricing.db import get_session
     with get_session() as session:
         lead = session.get(Lead, lead_id)
         if lead:
             session.delete(lead)
             session.commit()
+
 
 # Spusti raz v termináli alebo na začiatku aplikácie:
 if __name__ == "__main__":
